@@ -12,8 +12,6 @@
   <component name="ChangeListManager">
     <list default="true" id="c8e37cd9-e986-4220-ba77-cf9f36089c77" name="Default Changelist" comment="20200723">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyqt5_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyqt5_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/새로운 가상환경에서 실행시키는 조건_exe파일 만들기.txt" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
