@@ -8,18 +8,16 @@ warnings.filterwarnings('ignore')
 import pandas as pd
 import time
 import plotly.express as px
+import plotly
 import DataAnalysis_
 import Track2
-
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
+import xlrd
 
-
-
-# import xlrd
-
+track2_result = 0
 
 # 에러로 인한 강제종료 막는 함수
 def my_exception_hook(exctype, value, traceback):
@@ -84,41 +82,12 @@ class popup_screen(QDialog):
 
         self.value_list = [float(x_max_value), float(x_min_value), float(y_max_value),
                            float(y_min_value), float(z_max_value), float(z_min_value)]
-        return self.range_labeling.setText('X좌표의 최대값 : {}, X좌표의 최소값 : {}, Y좌표의 최대값: {}, Y좌표의 최소값 : {}, '
-                                    'Z좌표의 최대값 : {}, Z좌표의 최소값 : {}'.format(
-                                    self.value_list[0],self.value_list[3],self.value_list[1],
-                                    self.value_list[4],self.value_list[2],self.value_list[5],))
+        return self.range_labeling.setText('X좌표의 최대값 : {}, X좌표의 최소값 : {}, Y좌표의 최대값: {}, Y좌표의 최소값 : {},Z좌표의 최대값 : {}, Z좌표의 최소값 : {}'.format(self.value_list[0],self.value_list[3],self.value_list[1],self.value_list[4],self.value_list[2],self.value_list[5]))
 
     def show_graph_mini(self):
-        # df가 뭘까??
-        fisrt_axis = (MyWindow.__dict__['_MyWindow__shared_state']['first_axis'])
-        second_axis = (MyWindow.__dict__['_MyWindow__shared_state']['second_axis'])
-        third_axis = (MyWindow.__dict__['_MyWindow__shared_state']['third_axis'])
-        axis = [fisrt_axis, second_axis, third_axis]
-        # first_axis = axis[0]
-        # second_axis = axis[1]
-        # third_axis = axis[2]
-        # x_range = [self.value_list[0],self.value_list[3]]
-        # y_range = [self.value_list[1],self.value_list[4]]
-        # z_range = [self.value_list[2], self.value_list[5]]
+        print('팝업창에서 그래프 표현 한거')
+        print(track2_result)
 
-        # if third_axis == 'none':
-        #     if (x_range[0] >= x_range[1]) & (y_range[0] >= y_range[1]):
-        #         df = df[(df[first_axis] < x_range[0]) & (df[first_axis] > x_range[1])
-        #                 & (df[second_axis] < y_range[0]) & (df[second_axis] > y_range[1])]
-        #         fig = px.scatter(df, x=first_axis, y=second_axis)
-        #         self.browser_popup.setHtml(fig.to_html(include_plotlyjs='cdn'))
-        #     else:
-        #         QMessageBox.about(self, "message", '범위 확인 : 범위 설정 오류로 인해 그래프 출력 X')
-        # else:
-        #     if (x_range[0] >= x_range[1]) & (y_range[0] >= y_range[1]) & (z_range[0] >= z_range[1]):
-        #         df = df[(df[first_axis] < x_range[0]) & (df[first_axis] > x_range[1])
-        #                 & (df[second_axis] < y_range[0]) & (df[second_axis] > y_range[1])
-        #                 & (df[third_axis] < z_range[0]) & (df[third_axis] > z_range[1])]
-        #         fig = px.scatter_3d(df, x=first_axis, y=second_axis, z=third_axis)
-        #         self.browser_popup.setHtml(fig.to_html(include_plotlyjs='cdn'))
-        #     else:
-        #         QMessageBox.about(self, "message", '범위 확인 : 범위 설정 오류로 인해 그래프 출력 X')
 
 
 
@@ -264,10 +233,13 @@ class MyWindow(QWidget):
         arr = data_analysis.LoadData()
         Denoise_Data = data_analysis.Preprocess(arr)
         self.track2_result = data_analysis.Feature_Extract(Denoise_Data)
+        global track2_result
+        track2_result = self.track2_result
         self.track2_axis = list(self.track2_result.columns)
         self.combobox_x_track23.addItems(self.track2_axis)
         self.combobox_y_track23.addItems(self.track2_axis)
         self.combobox_z_track23.addItems(['none']+self.track2_axis)
+
         return self.track2_result
 
     def show_graph(self):
@@ -278,11 +250,9 @@ class MyWindow(QWidget):
         if z_value == 'none':
             fig = px.scatter(self.df, x=x_value, y=y_value)
             self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
-            # fig.show()
         else:
             fig = px.scatter_3d(self.df, x=x_value, y=y_value, z=z_value)
             self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
-            # fig.show()
         return self.df
 
     def set_axis(self):

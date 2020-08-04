@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="c8e37cd9-e986-4220-ba77-cf9f36089c77" name="Default Changelist" comment="20200723" />
+    <list default="true" id="c8e37cd9-e986-4220-ba77-cf9f36089c77" name="Default Changelist" comment="20200723">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyqt5_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyqt5_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/새로운 가상환경에서 실행시키는 조건_exe파일 만들기.txt" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -24,6 +37,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
@@ -176,8 +190,27 @@
       <option name="project" value="LOCAL" />
       <updated>1595494215284</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="20200723">
+      <created>1595494417376</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1595494417376</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="20200723" />
@@ -188,22 +221,22 @@
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
     <state x="546" y="294" key="FileChooserDialogImpl/0.0.2560.1040@0.0.2560.1040" timestamp="1595494172165" />
-    <state width="1256" height="281" key="GridCell.Tab.0.bottom" timestamp="1595494285404">
+    <state width="1256" height="281" key="GridCell.Tab.0.bottom" timestamp="1596508932066">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1256" height="281" key="GridCell.Tab.0.bottom/0.0.2560.1040@0.0.2560.1040" timestamp="1595494285404" />
-    <state width="1256" height="281" key="GridCell.Tab.0.center" timestamp="1595494285404">
+    <state width="1256" height="281" key="GridCell.Tab.0.bottom/0.0.2560.1040@0.0.2560.1040" timestamp="1596508932066" />
+    <state width="1256" height="281" key="GridCell.Tab.0.center" timestamp="1596508932066">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1256" height="281" key="GridCell.Tab.0.center/0.0.2560.1040@0.0.2560.1040" timestamp="1595494285404" />
-    <state width="1256" height="281" key="GridCell.Tab.0.left" timestamp="1595494285404">
+    <state width="1256" height="281" key="GridCell.Tab.0.center/0.0.2560.1040@0.0.2560.1040" timestamp="1596508932066" />
+    <state width="1256" height="281" key="GridCell.Tab.0.left" timestamp="1596508932066">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1256" height="281" key="GridCell.Tab.0.left/0.0.2560.1040@0.0.2560.1040" timestamp="1595494285404" />
-    <state width="1256" height="281" key="GridCell.Tab.0.right" timestamp="1595494285404">
+    <state width="1256" height="281" key="GridCell.Tab.0.left/0.0.2560.1040@0.0.2560.1040" timestamp="1596508932066" />
+    <state width="1256" height="281" key="GridCell.Tab.0.right" timestamp="1596508932066">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state width="1256" height="281" key="GridCell.Tab.0.right/0.0.2560.1040@0.0.2560.1040" timestamp="1595494285404" />
+    <state width="1256" height="281" key="GridCell.Tab.0.right/0.0.2560.1040@0.0.2560.1040" timestamp="1596508932066" />
     <state width="1256" height="341" key="GridCell.Tab.1.bottom" timestamp="1594954744661">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
@@ -220,14 +253,14 @@
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
     <state width="1256" height="341" key="GridCell.Tab.1.right/0.0.2560.1040@0.0.2560.1040" timestamp="1594954744661" />
-    <state x="268" y="185" width="998" height="708" key="SettingsEditor" timestamp="1594954392637">
+    <state x="264" y="197" width="998" height="708" key="SettingsEditor" timestamp="1596508882840">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state x="268" y="185" width="998" height="708" key="SettingsEditor/0.0.2560.1040@0.0.2560.1040" timestamp="1594954392637" />
-    <state x="1512" y="253" key="Vcs.Push.Dialog.v2" timestamp="1595494224855">
+    <state x="264" y="197" width="998" height="708" key="SettingsEditor/0.0.2560.1040@0.0.2560.1040" timestamp="1596508882840" />
+    <state x="1512" y="253" key="Vcs.Push.Dialog.v2" timestamp="1595494424321">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
-    <state x="1512" y="253" key="Vcs.Push.Dialog.v2/0.0.2560.1040@0.0.2560.1040" timestamp="1595494224855" />
+    <state x="1512" y="253" key="Vcs.Push.Dialog.v2/0.0.2560.1040@0.0.2560.1040" timestamp="1595494424321" />
     <state x="151" y="24" width="1094" height="847" maximized="true" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1594800930353">
       <screen x="0" y="0" width="2560" height="1040" />
     </state>
