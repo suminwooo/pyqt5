@@ -1,13 +1,16 @@
- # -*- encoding : utf-8 -*-
+# -*- encoding : utf-8 -*-
 
 import sys
+
 sys.setrecursionlimit(5000)
 import warnings
+
 warnings.filterwarnings('ignore')
 
 import pandas as pd
 import time
 import plotly.express as px
+import plotly.graph_objects as go
 import plotly
 import DataAnalysis_
 import Track2
@@ -19,9 +22,12 @@ import xlrd
 
 track2_result = 0
 
+
 # 에러로 인한 강제종료 막는 함수
 def my_exception_hook(exctype, value, traceback):
     sys._excepthook(exctype, value, traceback)
+
+
 sys._excepthook = sys.excepthook
 sys.excepthook = my_exception_hook
 
@@ -82,17 +88,16 @@ class popup_screen(QDialog):
 
         self.value_list = [float(x_max_value), float(x_min_value), float(y_max_value),
                            float(y_min_value), float(z_max_value), float(z_min_value)]
-        return self.range_labeling.setText('X좌표의 최대값 : {}, X좌표의 최소값 : {}, Y좌표의 최대값: {}, Y좌표의 최소값 : {},Z좌표의 최대값 : {}, Z좌표의 최소값 : {}'.format(self.value_list[0],self.value_list[3],self.value_list[1],self.value_list[4],self.value_list[2],self.value_list[5]))
+        return self.range_labeling.setText(
+            'X좌표의 최대값 : {}, X좌표의 최소값 : {}, Y좌표의 최대값: {}, Y좌표의 최소값 : {},Z좌표의 최대값 : {}, Z좌표의 최소값 : {}'.format(
+                self.value_list[0], self.value_list[3], self.value_list[1], self.value_list[4], self.value_list[2],
+                self.value_list[5]))
 
     def show_graph_mini(self):
         print('팝업창에서 그래프 표현 한거')
         print(track2_result)
 
-
-
-
     def setupUI(self):
-
         # 박스 설정
         self.setWindowTitle("graph detail")
         self.full_group_box = QGroupBox('전체 ')
@@ -111,9 +116,9 @@ class popup_screen(QDialog):
 
         # 레이아웃 설정
 
-        self.layout_all = QVBoxLayout() # 전체 레이아웃
-        self.layout_detail = QVBoxLayout() # 전체 디테일 레이아웃
-        self.range_layout = QVBoxLayout() # 범위설정 부분
+        self.layout_all = QVBoxLayout()  # 전체 레이아웃
+        self.layout_detail = QVBoxLayout()  # 전체 디테일 레이아웃
+        self.range_layout = QVBoxLayout()  # 범위설정 부분
         self.range_layout.addWidget(self.range_box_label)
         self.range_layout.addWidget(self.range_labeling)
         self.range_group_box.setLayout(self.range_layout)
@@ -125,13 +130,14 @@ class popup_screen(QDialog):
         self.graph_box.setLayout(self.grahp_layout)
         self.grahp_layout.addWidget(self.graph_box)
         self.layout = QVBoxLayout()
-        self.layout.addWidget(self.range_group_box,1)
+        self.layout.addWidget(self.range_group_box, 1)
         self.layout.addWidget(self.graph_box, 10)
         self.layout.addWidget(self.result_box, 1)
         self.setLayout(self.layout)
 
         # 끝
         self.setGeometry(200, 200, 700, 800)
+
 
 class file_path(QListWidget):
 
@@ -174,8 +180,8 @@ class file_path(QListWidget):
         self.file_name.append(file_name)
         return self.file_name
 
-class MyWindow(QWidget):
 
+class MyWindow(QWidget):
     __shared_state = {"x_max_range": '범위X', "x_min_range": '범위X', "y_max_range": '범위X',
                       "y_min_range": '범위X', "z_max_range": '범위X', "z_min_range": '범위X',
                       "first_axis": '지정축1', "second_axis": '지정축2', "third_axis": '지정축3',
@@ -229,7 +235,7 @@ class MyWindow(QWidget):
 
     def track2_file_modeling(self):
         data_analysis = Track2.Track2_DataAnalysis('data/sample_data', self.track2_file_clicked())
-        QMessageBox.about(self, "message", self.file_path2.file_name[-1]+'실행')
+        QMessageBox.about(self, "message", self.file_path2.file_name[-1] + '실행')
         arr = data_analysis.LoadData()
         Denoise_Data = data_analysis.Preprocess(arr)
         self.track2_result = data_analysis.Feature_Extract(Denoise_Data)
@@ -238,32 +244,47 @@ class MyWindow(QWidget):
         self.track2_axis = list(self.track2_result.columns)
         self.combobox_x_track23.addItems(self.track2_axis)
         self.combobox_y_track23.addItems(self.track2_axis)
-        self.combobox_z_track23.addItems(['none']+self.track2_axis)
+        self.combobox_z_track23.addItems(['none'] + self.track2_axis)
 
         return self.track2_result
 
     def show_graph(self):
+        import plotly.io as plt_io
+        plt_io.templates["custom_dark"] = plt_io.templates["none"]
+        plt_io.templates['custom_dark']['layout']['yaxis']['gridcolor'] = 'darkgray'
+        plt_io.templates['custom_dark']['layout']['xaxis']['gridcolor'] = 'darkgray'
+
+        # 그래프 그리기
         x_value = '{}'.format(self.x_content)
         y_value = '{}'.format(self.y_content)
         z_value = '{}'.format(self.z_content)
         self.df = self.track2_file_modeling()
+
         if z_value == 'none':
-            fig = px.scatter(self.df, x=x_value, y=y_value)
+            fig = px.scatter(self.df, x=x_value, y=y_value, opacity=0.4)
+            fig.layout.template = 'custom_dark'
+            fig.update_traces(marker=dict(size=5, line=dict(color='rgba(0, 0, 0, 1)', width=2)),
+                              selector=dict(mode='markers'))
             self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
+            return self.df
         else:
-            fig = px.scatter_3d(self.df, x=x_value, y=y_value, z=z_value)
+            fig = px.scatter_3d(self.df, x=x_value, y=y_value, z=z_value, opacity=0.4)
+            fig.layout.template = 'custom_dark'
+            fig.update_traces(marker=dict(size=3, line=dict(color='rgba(0, 0, 0, 1)', width=2)),
+                              selector=dict(mode='markers'))
             self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
-        return self.df
+            return self.df
 
     def set_axis(self):
         self.x_content = self.combobox_x_track23.currentText()
         self.y_content = self.combobox_y_track23.currentText()
         self.z_content = self.combobox_z_track23.currentText()
-        self.change_axis_label_track23.setText('{},{},{}'.format(self.x_content,self.y_content,self.z_content))
+        self.change_axis_label_track23.setText('{},{},{}'.format(self.x_content, self.y_content, self.z_content))
         self.__shared_state['first_axis'] = self.x_content
         self.__shared_state['second_axis'] = self.y_content
         self.__shared_state['third_axis'] = self.z_content
-        return [self.__shared_state['first_axis'],self.__shared_state['second_axis'],self.__shared_state['third_axis']]
+        return [self.__shared_state['first_axis'], self.__shared_state['second_axis'],
+                self.__shared_state['third_axis']]
 
     def save_range_value(self):
         self.x_max_range = self.x_max_line.text()
@@ -372,7 +393,7 @@ class MyWindow(QWidget):
         self.layout_drop_file_track1.addWidget(self.delete_btn_track1)
         self.csv_group_box_drop_track1.setLayout(self.layout_drop_file_track1)
         self.layout_first_drop_track1.addWidget(self.csv_group_box_drop_track1)
-        self.csv_group_box_track1.setLayout(self.layout_first_drop_track1) # 인풋 버튼
+        self.csv_group_box_track1.setLayout(self.layout_first_drop_track1)  # 인풋 버튼
         self.detail_layout_track1 = QGridLayout()
         self.detail_layout_track1.addWidget(self.result_label_void_track1, 0, 0)
         self.detail_layout_track1.addWidget(self.result_label_surface_track1, 1, 0)
@@ -387,12 +408,12 @@ class MyWindow(QWidget):
         self.final_result_layout_track1.addWidget(self.result_group_box_track1)
         self.layout_drop_file_update_track1 = QVBoxLayout()  # 왼쪽 전체 업데이트 파일 떨구는 레이아웃
         self.layout_drop_file_update_track1.addWidget(self.file_path_all)
-        self.layout_detail_track1.addWidget(self.csv_group_box_track1,1)
-        self.layout_detail_track1.addWidget(self.data_btn_track1,1)
-        self.layout_detail_track1.addWidget(self.result_group_box_track1,1)
-        self.layout_detail_track1.addWidget(self.result_btn_track1,1)
-        self.layout_detail_track1.addWidget(self.model_updata_btn_track1,1)
-        self.layout_detail_track1.addWidget(self.empy_groupbox,1)
+        self.layout_detail_track1.addWidget(self.csv_group_box_track1, 1)
+        self.layout_detail_track1.addWidget(self.data_btn_track1, 1)
+        self.layout_detail_track1.addWidget(self.result_group_box_track1, 1)
+        self.layout_detail_track1.addWidget(self.result_btn_track1, 1)
+        self.layout_detail_track1.addWidget(self.model_updata_btn_track1, 1)
+        self.layout_detail_track1.addWidget(self.empy_groupbox, 1)
         self.track1_group_box.setLayout(self.layout_detail_track1)
         self.layout_track1.addWidget(self.track1_group_box)
         self.main_layout.addLayout(self.layout_track1, 1)
@@ -404,19 +425,19 @@ class MyWindow(QWidget):
         self.layout_drop_file_track23.addWidget(self.file_path2)
         self.csv_group_box_drop_track23.setLayout(self.layout_drop_file_track23)
         self.layout_axis_track23 = QGridLayout()  # 축선택 레이아웃
-        self.layout_axis_track23.addWidget(self.axis_x_axis_track23, 0, 0,1,1)
-        self.layout_axis_track23.addWidget(self.combobox_x_track23, 0, 1,1,2)
-        self.layout_axis_track23.addWidget(self.axis_labeling_track23,0,4,1,3)
-        self.layout_axis_track23.addWidget(self.axis_y_axis_track23, 1, 0,1,1)
-        self.layout_axis_track23.addWidget(self.combobox_y_track23, 1, 1,1,2)
-        self.layout_axis_track23.addWidget(self.change_axis_label_track23,1,4,1,3)
-        self.layout_axis_track23.addWidget(self.axis_z_axis_track23, 2, 0,1,1)
-        self.layout_axis_track23.addWidget(self.combobox_z_track23, 2, 1,1,2)
-        self.layout_axis_track23.addWidget( self.axis_z_axis_value_track23, 2,4,1,3)
+        self.layout_axis_track23.addWidget(self.axis_x_axis_track23, 0, 0, 1, 1)
+        self.layout_axis_track23.addWidget(self.combobox_x_track23, 0, 1, 1, 2)
+        self.layout_axis_track23.addWidget(self.axis_labeling_track23, 0, 4, 1, 3)
+        self.layout_axis_track23.addWidget(self.axis_y_axis_track23, 1, 0, 1, 1)
+        self.layout_axis_track23.addWidget(self.combobox_y_track23, 1, 1, 1, 2)
+        self.layout_axis_track23.addWidget(self.change_axis_label_track23, 1, 4, 1, 3)
+        self.layout_axis_track23.addWidget(self.axis_z_axis_track23, 2, 0, 1, 1)
+        self.layout_axis_track23.addWidget(self.combobox_z_track23, 2, 1, 1, 2)
+        self.layout_axis_track23.addWidget(self.axis_z_axis_value_track23, 2, 4, 1, 3)
         self.axis_track23.setLayout(self.layout_axis_track23)
-        self.layout_second_track23.addWidget(self.csv_group_box_drop_track23,2)
-        self.layout_second_track23.addWidget(self.csv_group_check_btn_track23,1)
-        self.layout_second_track23.addWidget(self.axis_track23,10)
+        self.layout_second_track23.addWidget(self.csv_group_box_drop_track23, 2)
+        self.layout_second_track23.addWidget(self.csv_group_check_btn_track23, 1)
+        self.layout_second_track23.addWidget(self.axis_track23, 10)
         self.csv_group_box_track23.setLayout(self.layout_second_track23)
         self.layout_second_track23 = QHBoxLayout()  # 오른쪽 두번째 레이아웃
         self.layout_second_graph_btn_track23 = QVBoxLayout()  # 오른쪽 두번째 그래프 부분 레이아웃
@@ -444,9 +465,9 @@ class MyWindow(QWidget):
         self.layout_third_track23.addWidget(self.graph_import_btn_track23)
         self.three_graph_track23.setLayout(self.layout_third_track23)
         self.layout_third_track23.addWidget(self.three_graph_track23)
-        self.layout_detail_track23.addWidget(self.csv_group_box_track23,1)
-        self.layout_detail_track23.addWidget(self.graph_axis_track23,10)
-        self.layout_detail_track23.addWidget(self.three_graph_track23,1)
+        self.layout_detail_track23.addWidget(self.csv_group_box_track23, 1)
+        self.layout_detail_track23.addWidget(self.graph_axis_track23, 10)
+        self.layout_detail_track23.addWidget(self.three_graph_track23, 1)
         self.track23_group_box.setLayout(self.layout_detail_track23)
         self.layout_track23.addWidget(self.track23_group_box)
         self.main_layout.addLayout(self.layout_track23, 6)
@@ -456,6 +477,7 @@ class MyWindow(QWidget):
         self.setWindowIcon(QIcon('test_image.jpg'))
         self.setGeometry(100, 100, 1200, 800)
         self.show()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
