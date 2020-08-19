@@ -79,18 +79,18 @@ class popup_screen(QDialog):
         self.range_box_label.setEnabled(False)
 
     def range_clicked(self):  # 버튼 눌렀을때 나타나는 이벤트
-        x_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['x_max_range'])
-        x_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['x_min_range'])
-        y_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['y_max_range'])
-        y_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['y_min_range'])
-        z_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['z_max_range'])
-        z_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['z_min_range'])
+        x_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering1'])
+        x_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering2'])
+        y_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering3'])
+        y_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering4'])
+        z_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering5'])
+        z_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering6'])
 
-        self.value_list = [float(x_max_value), float(x_min_value), float(y_max_value),
-                           float(y_min_value), float(z_max_value), float(z_min_value)]
+        self.value_list = [x_max_value, x_min_value, y_max_value, y_min_value, z_max_value, z_min_value]
         return self.range_labeling.setText(
-            'X좌표의 최대값 : {}, X좌표의 최소값 : {}, Y좌표의 최대값: {}, Y좌표의 최소값 : {},Z좌표의 최대값 : {}, Z좌표의 최소값 : {}'.format(
-                self.value_list[0], self.value_list[3], self.value_list[1], self.value_list[4], self.value_list[2],
+            '#1 클러스터링 : {}, #2 클러스터링 : {}, #3 클러스터링: {}, #4 클러스터링 : {},#5 클러스터링 : {},'
+            ' #6 클러스터링 : {}'.format(
+                self.value_list[0], self.value_list[1], self.value_list[2], self.value_list[3], self.value_list[4],
                 self.value_list[5]))
 
     def show_graph_mini(self):
@@ -102,8 +102,8 @@ class popup_screen(QDialog):
         self.setWindowTitle("graph detail")
         self.full_group_box = QGroupBox('전체 ')
         self.range_group_box = QGroupBox('범위')
-        self.range_box_label = QPushButton('버튼을 눌러서 범위를 확인하세요')
-        self.range_labeling = QLabel('버튼을 눌러서 범위를 확인하세요')
+        self.range_box_label = QPushButton('버튼을 눌러서 셋팅한 정보를 확인하세요')
+        self.range_labeling = QLabel('버튼을 눌러서 셋팅한 정보를 확인하세요')
         self.range_box_label.clicked.connect(self.range_clicked)
         self.range_box_label.clicked.connect(self.button_block)
 
@@ -136,8 +136,27 @@ class popup_screen(QDialog):
         self.setLayout(self.layout)
 
         # 끝
-        self.setGeometry(200, 200, 700, 800)
+        self.setGeometry(200, 200, 750, 850)
 
+class popup_screen_dendrogram(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUI()
+
+    def setupUI(self):
+        # 박스 설정
+        self.graph_box = QGroupBox("Dendrogram")
+        # 레이아웃 설정
+        self.layout_all = QVBoxLayout()  # 전체 레이아웃
+        self.layout_detail = QVBoxLayout()  # 전체 디테일 레이아웃
+        self.range_layout = QVBoxLayout()  # 범위설정 부분
+        self.grahp_layout = QVBoxLayout()  # 그래프 부분
+        self.graph_box.setLayout(self.grahp_layout)
+        self.grahp_layout.addWidget(self.graph_box)
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.graph_box, 10)
+        self.setLayout(self.layout)
+        self.setGeometry(200, 200, 500, 500) # 사이즈 조정
 
 class file_path(QListWidget):
 
@@ -182,8 +201,8 @@ class file_path(QListWidget):
 
 
 class MyWindow(QWidget):
-    __shared_state = {"x_max_range": '범위X', "x_min_range": '범위X', "y_max_range": '범위X',
-                      "y_min_range": '범위X', "z_max_range": '범위X', "z_min_range": '범위X',
+    __shared_state = {"clustering1": '범위X', "clustering2": '범위X', "clustering3": '범위X',
+                      "clustering4": '범위X', "clustering5": '범위X', "clustering6": '범위X',
                       "first_axis": '지정축1', "second_axis": '지정축2', "third_axis": '지정축3',
                       }
 
@@ -213,6 +232,10 @@ class MyWindow(QWidget):
 
     def popup_btn(self):
         mydialog = popup_screen(self)
+        mydialog.show()
+
+    def popup_dendrogram_btn(self):
+        mydialog = popup_screen_dendrogram(self)
         mydialog.show()
 
     def check_clicked(self):  # 버튼 눌렀을때 나타나는 이벤트
@@ -287,12 +310,12 @@ class MyWindow(QWidget):
                 self.__shared_state['third_axis']]
 
     def save_range_value(self):
-        self.x_max_range = self.x_max_line.text()
-        self.x_min_range = self.x_min_line.text()
-        self.y_max_range = self.y_max_line.text()
-        self.y_min_range = self.y_min_line.text()
-        self.z_max_range = self.z_max_line.text()
-        self.z_min_range = self.z_min_line.text()
+        self.clustering1 = self.x_max_line.text()
+        self.clustering2 = self.x_min_line.text()
+        self.clustering3 = self.y_max_line.text()
+        self.clustering4 = self.y_min_line.text()
+        self.clustering5 = self.z_max_line.text()
+        self.clustering6 = self.z_min_line.text()
 
     def preprocessing_result_track1(self):
         now = time.localtime()
@@ -340,38 +363,31 @@ class MyWindow(QWidget):
         self.csv_group_check_btn_track23 = QPushButton('◁◁◁파일 선택 버튼')
         self.csv_group_check_btn_track23.clicked.connect(self.track2_file_clicked)
         self.csv_group_check_btn_track23.clicked.connect(self.track2_file_modeling)
+        self.dendrogram_btn_track23 = QPushButton('덴드로그램 팝업 버튼') ###########################
+        self.dendrogram_btn_track23.clicked.connect(self.popup_dendrogram_btn)
         self.file_path1.selectedItems()
-        self.axis_track23 = QGroupBox('축 선택')
-        self.axis_x_axis_track23 = QLabel('X축')
-        self.combobox_x_track23 = QComboBox()
-        self.axis_labeling_track23 = QLabel('축 선택 된 부분▽▽▽')
-        self.axis_y_axis_track23 = QLabel('Y축')
-        self.combobox_y_track23 = QComboBox()
-        self.change_axis_label_track23 = QLabel('축을 선택해주세요')
-        self.axis_z_axis_track23 = QLabel('Z축')
-        self.combobox_z_track23 = QComboBox()
-        self.axis_z_axis_value_track23 = QPushButton('축 설정 버튼')
-        self.axis_z_axis_value_track23.pressed.connect(self.set_axis)
-        self.graph_axis_track23 = QGroupBox()
+        self.axis_track23 = QGroupBox('클러스터링')
+        self.clustering_count_label_track23 = QLabel('클러스터링 입력 수 ')
+        self.lineedit_clustering_count_track23 = QLineEdit('0')
         self.center_graph_btn_track23 = QPushButton('그래프 출력 버튼')
-        self.center_graph_btn_track23.clicked.connect(self.show_graph)
+        self.graph_axis_track23 = QGroupBox()
         self.center_detail_graph_track23 = QGroupBox('각 축 좌표 범위 검색 및 이미지 출력')
         self.browser = QtWebEngineWidgets.QWebEngineView()
-        self.three_graph_track23 = QGroupBox('그래프 상세 검색')
+        self.three_graph_track23 = QGroupBox('클러스터링 입력 부분')
         self.search_xyz_track23 = QGroupBox('좌표 검색')
-        self.x_max_track23 = QLabel('X_max')
-        self.x_max_value_track23 = QLineEdit('0')
-        self.x_min_track23 = QLabel('X_min')
-        self.x_min_value_track23 = QLineEdit('0')
-        self.y_max_track23 = QLabel('Y_max')
-        self.y_max_value_track23 = QLineEdit('0')
-        self.y_min_track23 = QLabel('Y_min')
-        self.y_min_value_track23 = QLineEdit('0')
-        self.z_max_track23 = QLabel('Z_max')
-        self.z_max_value_track23 = QLineEdit('0')
-        self.z_min_track23 = QLabel('Z_min')
-        self.z_min_value_track23 = QLineEdit('0')
-        self.axis_setting_btn_track23 = QPushButton('좌표 범위 셋팅')
+        self.x_max_track23 = QLabel('#1')
+        self.x_max_value_track23 = QLineEdit('')
+        self.x_min_track23 = QLabel('#4')
+        self.x_min_value_track23 = QLineEdit('')
+        self.y_max_track23 = QLabel('#2')
+        self.y_max_value_track23 = QLineEdit('')
+        self.y_min_track23 = QLabel('#5')
+        self.y_min_value_track23 = QLineEdit('')
+        self.z_max_track23 = QLabel('#3')
+        self.z_max_value_track23 = QLineEdit('')
+        self.z_min_track23 = QLabel('#6')
+        self.z_min_value_track23 = QLineEdit('')
+        self.axis_setting_btn_track23 = QPushButton('클러스터링 입력')
         self.axis_setting_btn_track23.clicked.connect(self.check_clicked_range)
         self.axis_setting_btn_track23.clicked.connect(self.save_range_value)
         self.x_max_line = self.x_max_value_track23
@@ -380,7 +396,7 @@ class MyWindow(QWidget):
         self.y_min_line = self.y_min_value_track23
         self.z_max_line = self.z_max_value_track23
         self.z_min_line = self.z_min_value_track23
-        self.graph_import_btn_track23 = QPushButton('좌표 그래프 출력')
+        self.graph_import_btn_track23 = QPushButton('클러스터링 그래프 출력')
         self.graph_import_btn_track23.clicked.connect(self.popup_btn)
         #### 레이아웃
         self.main_layout = QHBoxLayout()  # 메인 레이아웃
@@ -425,23 +441,28 @@ class MyWindow(QWidget):
         self.layout_drop_file_track23.addWidget(self.file_path2)
         self.csv_group_box_drop_track23.setLayout(self.layout_drop_file_track23)
         self.layout_axis_track23 = QGridLayout()  # 축선택 레이아웃
-        self.layout_axis_track23.addWidget(self.axis_x_axis_track23, 0, 0, 1, 1)
-        self.layout_axis_track23.addWidget(self.combobox_x_track23, 0, 1, 1, 2)
-        self.layout_axis_track23.addWidget(self.axis_labeling_track23, 0, 4, 1, 3)
-        self.layout_axis_track23.addWidget(self.axis_y_axis_track23, 1, 0, 1, 1)
-        self.layout_axis_track23.addWidget(self.combobox_y_track23, 1, 1, 1, 2)
-        self.layout_axis_track23.addWidget(self.change_axis_label_track23, 1, 4, 1, 3)
-        self.layout_axis_track23.addWidget(self.axis_z_axis_track23, 2, 0, 1, 1)
-        self.layout_axis_track23.addWidget(self.combobox_z_track23, 2, 1, 1, 2)
-        self.layout_axis_track23.addWidget(self.axis_z_axis_value_track23, 2, 4, 1, 3)
+        self.layout_axis_track23.addWidget(self.clustering_count_label_track23,0,0)
+        self.layout_axis_track23.addWidget(self.lineedit_clustering_count_track23,0,1)
+        # self.layout_axis_track23.addWidget(self.center_graph_label_track23,1,0)
+        self.layout_axis_track23.addWidget(self.center_graph_btn_track23,1,1)
+        # self.layout_axis_track23.addWidget(self.axis_x_axis_track23, 0, 0, 1, 1)
+        # self.layout_axis_track23.addWidget(self.combobox_x_track23, 0, 1, 1, 2)
+        # self.layout_axis_track23.addWidget(self.axis_labeling_track23, 0, 4, 1, 3)
+        # self.layout_axis_track23.addWidget(self.axis_y_axis_track23, 1, 0, 1, 1)
+        # self.layout_axis_track23.addWidget(self.combobox_y_track23, 1, 1, 1, 2)
+        # self.layout_axis_track23.addWidget(self.change_axis_label_track23, 1, 4, 1, 3)
+        # self.layout_axis_track23.addWidget(self.axis_z_axis_track23, 2, 0, 1, 1)
+        # self.layout_axis_track23.addWidget(self.combobox_z_track23, 2, 1, 1, 2)
+        # self.layout_axis_track23.addWidget(self.axis_z_axis_value_track23, 2, 4, 1, 3)
         self.axis_track23.setLayout(self.layout_axis_track23)
         self.layout_second_track23.addWidget(self.csv_group_box_drop_track23, 2)
         self.layout_second_track23.addWidget(self.csv_group_check_btn_track23, 1)
+        self.layout_second_track23.addWidget(self.dendrogram_btn_track23, 1)
         self.layout_second_track23.addWidget(self.axis_track23, 10)
         self.csv_group_box_track23.setLayout(self.layout_second_track23)
         self.layout_second_track23 = QHBoxLayout()  # 오른쪽 두번째 레이아웃
         self.layout_second_graph_btn_track23 = QVBoxLayout()  # 오른쪽 두번째 그래프 부분 레이아웃
-        self.layout_second_graph_btn_track23.addWidget(self.center_graph_btn_track23, alignment=QtCore.Qt.AlignLeft)
+        # self.layout_second_graph_btn_track23.addWidget(self.center_graph_btn_track23, alignment=QtCore.Qt.AlignLeft)
         self.layout_second_graph_btn_track23.addWidget(self.browser)
         self.graph_axis_track23.setLayout(self.layout_second_graph_btn_track23)
         self.graph_axis_track23.setLayout(self.layout_second_track23)
