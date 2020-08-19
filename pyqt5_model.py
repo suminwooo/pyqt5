@@ -146,6 +146,7 @@ class popup_screen_dendrogram(QDialog):
     def setupUI(self):
         # 박스 설정
         self.graph_box = QGroupBox("Dendrogram")
+        self.graph_detail_box = QGroupBox("분류")
         # 레이아웃 설정
         self.layout_all = QVBoxLayout()  # 전체 레이아웃
         self.layout_detail = QVBoxLayout()  # 전체 디테일 레이아웃
@@ -153,10 +154,12 @@ class popup_screen_dendrogram(QDialog):
         self.grahp_layout = QVBoxLayout()  # 그래프 부분
         self.graph_box.setLayout(self.grahp_layout)
         self.grahp_layout.addWidget(self.graph_box)
-        self.layout = QVBoxLayout()
+        self.grahp_layout.addWidget(self.graph_detail_box)
+        self.layout = QHBoxLayout()
         self.layout.addWidget(self.graph_box, 10)
+        self.layout.addWidget(self.graph_detail_box, 5)
         self.setLayout(self.layout)
-        self.setGeometry(200, 200, 500, 500) # 사이즈 조정
+        self.setGeometry(200, 200, 750, 500) # 사이즈 조정
 
 class file_path(QListWidget):
 
