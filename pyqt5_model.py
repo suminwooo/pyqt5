@@ -9,16 +9,17 @@ warnings.filterwarnings('ignore')
 
 import pandas as pd
 import time
-import plotly.express as px
-import plotly.graph_objects as go
-import plotly
-import DataAnalysis_
-import Track2
+from DataAnalysis_ import track1
+from Track3_Analysis import ANALYZER, track23_popup
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
 import xlrd
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+from scipy.cluster.hierarchy import linkage, dendrogram
+import matplotlib.pyplot as plt
 
 track2_result = 0
 
@@ -31,6 +32,10 @@ def my_exception_hook(exctype, value, traceback):
 sys._excepthook = sys.excepthook
 sys.excepthook = my_exception_hook
 
+# 전역 변수 설정
+pca_result = 0
+topology_max = 0
+
 
 class popup_screen(QDialog):
     def __init__(self, parent=None):
@@ -42,27 +47,27 @@ class popup_screen(QDialog):
         group_box_surface = QGroupBox('surface')
         group_box_corona = QGroupBox('corona')
         group_box_noise = QGroupBox('noise')
-        void_text = QLabel('num')
-        surface_text = QLabel('num')
-        corona_text = QLabel('num')
-        noise_text = QLabel('num')
+        self.void_text = QLabel('num')
+        self.surface_text = QLabel('num')
+        self.corona_text = QLabel('num')
+        self.noise_text = QLabel('num')
         void_detail_layout = QGridLayout()
-        void_detail_layout.addWidget(void_text)
+        void_detail_layout.addWidget(self.void_text)
         group_box_void.setLayout(void_detail_layout)
         void_layout = QVBoxLayout()
         void_layout.addWidget(group_box_void)
         surface_detail_surface = QGridLayout()
-        surface_detail_surface.addWidget(surface_text)
+        surface_detail_surface.addWidget(self.surface_text)
         group_box_surface.setLayout(surface_detail_surface)
         surface_layout = QVBoxLayout()
         surface_layout.addWidget(group_box_surface)
         corona_deail_layout = QGridLayout()
-        corona_deail_layout.addWidget(corona_text)
+        corona_deail_layout.addWidget(self.corona_text)
         group_box_corona.setLayout(corona_deail_layout)
         corona_layout = QVBoxLayout()
         corona_layout.addWidget(group_box_corona)
         noise_detail_layout = QGridLayout()
-        noise_detail_layout.addWidget(noise_text)
+        noise_detail_layout.addWidget(self.noise_text)
         group_box_noise.setLayout(noise_detail_layout)
         noise_layout = QVBoxLayout()
         noise_layout.addWidget(group_box_noise)
@@ -79,38 +84,64 @@ class popup_screen(QDialog):
         self.range_box_label.setEnabled(False)
 
     def range_clicked(self):  # 버튼 눌렀을때 나타나는 이벤트
-        x_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering1'])
-        x_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering2'])
-        y_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering3'])
-        y_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering4'])
-        z_max_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering5'])
-        z_min_value = (MyWindow.__dict__['_MyWindow__shared_state']['clustering6'])
+        setting_value = (MyWindow.__dict__['_MyWindow__shared_state']['setting_clustering_list'])
 
-        self.value_list = [x_max_value, x_min_value, y_max_value, y_min_value, z_max_value, z_min_value]
-        return self.range_labeling.setText(
-            '#1 클러스터링 : {}, #2 클러스터링 : {}, #3 클러스터링: {}, #4 클러스터링 : {},#5 클러스터링 : {},'
-            ' #6 클러스터링 : {}'.format(
-                self.value_list[0], self.value_list[1], self.value_list[2], self.value_list[3], self.value_list[4],
-                self.value_list[5]))
+        self.value_list = [setting_value]
+        return self.range_labeling.setText('입력한 클러스터링 번호 : {}'.format(self.value_list[0]))
 
-    def show_graph_mini(self):
-        print('팝업창에서 그래프 표현 한거')
-        print(track2_result)
+    def calculate(self):
+        pca_result = MyWindow.__dict__['_MyWindow__shared_state']['pca_result']
+        topology_max = MyWindow.__dict__['_MyWindow__shared_state']['topology_max']
+        labels = MyWindow.__dict__['_MyWindow__shared_state']['labels']
+        clustering_number = MyWindow.__dict__['_MyWindow__shared_state']['setting_clustering_list']
+        clustering_number = [int(i) for i in clustering_number.split(',')]
+
+        filter_value = track23_popup().Filter(pca_result=pca_result, topology_max=topology_max, labels=labels,
+                                              choise_cluster_list=clustering_number)
+        self.filter_value_result = filter_value[0]
+        self.filter_value_filter_data = filter_value[1]
+
+        self.fig.clear()
+
+        ####
+        # import numpy as np
+        # from scipy.stats import gaussian_kde
+        # x = self.filter_value_filter_data['Max']
+        # y = self.filter_value_filter_data['topology']
+        # # Calculate the point density
+        # xy = np.vstack([x, y])
+        # z = gaussian_kde(xy)(xy)
+        # # Sort the points by density, so that the densest points are plotted last
+        # idx = z.argsort()
+        # x, y, z = x[idx], y[idx], z[idx]
+        # for i in range(len(x)):
+        #     ax.scatter(x[i], y[i], s=50)
+        ax = self.fig.add_subplot()
+        ax.hist2d(self.filter_value_filter_data['Max'], self.filter_value_filter_data['topology'], (50, 50),
+                  cmap='bone_r')
+        self.canvas.draw()
+        svm_df = track23_popup().Classifier(self.filter_value_result)
+
+        self.void_text.setText('{} %'.format(float(svm_df['VOID_JDGM'])))
+        self.surface_text.setText('{} %'.format(float(svm_df['SURFACE_JDGM'])))
+        self.corona_text.setText('{} %'.format(float(svm_df['CORONA_JDGM'])))
+        self.noise_text.setText('{} %'.format(float(svm_df['NOISE_JDGM'])))
 
     def setupUI(self):
         # 박스 설정
         self.setWindowTitle("graph detail")
         self.full_group_box = QGroupBox('전체 ')
         self.range_group_box = QGroupBox('범위')
-        self.range_box_label = QPushButton('버튼을 눌러서 셋팅한 정보를 확인하세요')
-        self.range_labeling = QLabel('버튼을 눌러서 셋팅한 정보를 확인하세요')
+        self.range_box_label = QPushButton('버튼을 눌러서 클러스터링 번호를 확인하세요')
+        self.range_labeling = QLabel('버튼을 눌러서 클러스터링 번호를 확인하세요')
         self.range_box_label.clicked.connect(self.range_clicked)
         self.range_box_label.clicked.connect(self.button_block)
 
         self.graph_box = QGroupBox("그래프")
         self.graph_btn = QPushButton("그래프 생성 버튼")
-        self.graph_btn.clicked.connect(self.show_graph_mini)
-        self.browser_popup = QtWebEngineWidgets.QWebEngineView()
+        self.graph_btn.clicked.connect(self.calculate)
+        self.fig = plt.Figure()  # 그림부분
+        self.canvas = FigureCanvas(self.fig)
         self.result_box = QGroupBox("패턴 인식 결과")
         self.model_result(self.result_box)  # 값 넣기
 
@@ -125,7 +156,7 @@ class popup_screen(QDialog):
         self.grahp_layout = QVBoxLayout()  # 그래프 부분
         self.layout_graph_btn = QVBoxLayout()  # 오른쪽 두번째 그래프 부분 레이아웃
         self.layout_graph_btn.addWidget(self.graph_btn, alignment=QtCore.Qt.AlignLeft)
-        self.layout_graph_btn.addWidget(self.browser_popup)
+        self.layout_graph_btn.addWidget(self.canvas)
         self.graph_box.setLayout(self.layout_graph_btn)
         self.graph_box.setLayout(self.grahp_layout)
         self.grahp_layout.addWidget(self.graph_box)
@@ -138,28 +169,20 @@ class popup_screen(QDialog):
         # 끝
         self.setGeometry(200, 200, 750, 850)
 
+
 class popup_screen_dendrogram(QDialog):
     def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setupUI()
+        # super().__init__(parent)
+        pca_result = None
+        self.dendrogram()
 
-    def setupUI(self):
-        # 박스 설정
-        self.graph_box = QGroupBox("Dendrogram")
-        self.graph_detail_box = QGroupBox("분류")
-        # 레이아웃 설정
-        self.layout_all = QVBoxLayout()  # 전체 레이아웃
-        self.layout_detail = QVBoxLayout()  # 전체 디테일 레이아웃
-        self.range_layout = QVBoxLayout()  # 범위설정 부분
-        self.grahp_layout = QVBoxLayout()  # 그래프 부분
-        self.graph_box.setLayout(self.grahp_layout)
-        self.grahp_layout.addWidget(self.graph_box)
-        self.grahp_layout.addWidget(self.graph_detail_box)
-        self.layout = QHBoxLayout()
-        self.layout.addWidget(self.graph_box, 10)
-        self.layout.addWidget(self.graph_detail_box, 5)
-        self.setLayout(self.layout)
-        self.setGeometry(200, 200, 750, 500) # 사이즈 조정
+    def dendrogram(self):
+        pca_result = (MyWindow.__dict__['_MyWindow__shared_state']['pca_result'])[0]
+        mergings = linkage(pca_result, method='ward')
+        dendrogram(mergings)
+        plt.xticks(color='w')
+        plt.show()
+
 
 class file_path(QListWidget):
 
@@ -204,11 +227,11 @@ class file_path(QListWidget):
 
 
 class MyWindow(QWidget):
-    __shared_state = {"clustering1": '범위X', "clustering2": '범위X', "clustering3": '범위X',
-                      "clustering4": '범위X', "clustering5": '범위X', "clustering6": '범위X',
-                      "first_axis": '지정축1', "second_axis": '지정축2', "third_axis": '지정축3',
-                      }
+    __shared_state = {"setting_clustering_list": '범위X', "pca_result": 'pca_result', "topology_max": 'topology_max',
+                      "labels": 'labels', "clustering_number": 0}
 
+    # setting_clustering_list : track2 마지막 부분에 직접 입력한 리스트의 수
+    # clustering_number : track2 첫 부분에 클러스터링 하는 수
     def __init__(self):
         self.__dict__ = self.__shared_state
         pass
@@ -227,19 +250,20 @@ class MyWindow(QWidget):
 
     def edit_result(self):
         # import sklearn
-        self.value = DataAnalysis_.Model('data/sample_data/', self.file_name1)
+        self.track1_model = track1('data/sample_data/', self.file_name1)
+        self.value = self.track1_model.Model()[0]
         self.void_text_track1.setText('{} %'.format(float(self.value[0])))
         self.surface_text_track1.setText('{} %'.format(float(self.value[1])))
         self.corona_text_track1.setText('{} %'.format(float(self.value[2])))
         self.noise_text_track1.setText('{} %'.format(float(self.value[3])))
+        return self.value[-1]
 
     def popup_btn(self):
         mydialog = popup_screen(self)
         mydialog.show()
 
     def popup_dendrogram_btn(self):
-        mydialog = popup_screen_dendrogram(self)
-        mydialog.show()
+        popup_screen_dendrogram(self)
 
     def check_clicked(self):  # 버튼 눌렀을때 나타나는 이벤트
         QMessageBox.about(self, "message", 'ㅇ눌러짐')
@@ -260,76 +284,76 @@ class MyWindow(QWidget):
         return self.file_name2
 
     def track2_file_modeling(self):
-        data_analysis = Track2.Track2_DataAnalysis('data/sample_data', self.track2_file_clicked())
+        data_analysis_class = ANALYZER('data/sample_data', self.track2_file_clicked())
         QMessageBox.about(self, "message", self.file_path2.file_name[-1] + '실행')
-        arr = data_analysis.LoadData()
-        Denoise_Data = data_analysis.Preprocess(arr)
-        self.track2_result = data_analysis.Feature_Extract(Denoise_Data)
-        global track2_result
-        track2_result = self.track2_result
-        self.track2_axis = list(self.track2_result.columns)
-        self.combobox_x_track23.addItems(self.track2_axis)
-        self.combobox_y_track23.addItems(self.track2_axis)
-        self.combobox_z_track23.addItems(['none'] + self.track2_axis)
+        data_analysis = data_analysis_class.Extractor(data_analysis_class.LoadData())
+        self.pca_result = [data_analysis[0]]
+        self.topology_max = [data_analysis[1]]
+        self.__shared_state['pca_result'] = self.pca_result
+        self.__shared_state['topology_max'] = self.topology_max
 
-        return self.track2_result
+    def show_graph_cluster_list_show(self):
+        data_analysis_class = ANALYZER('data/sample_data', self.track2_file_clicked())
+        dendrogram_data = data_analysis_class.Cluster((MyWindow.__dict__['_MyWindow__shared_state']['pca_result'])[0],
+                                                      self.clustering_number_btn())
+        self.labels = dendrogram_data[0]
+        self.__shared_state['labels'] = self.labels
+        self.labels = self.__shared_state['labels']
+        self.cluster_list = list(dendrogram_data[1])
+        self.tsne = dendrogram_data[2]
+        try:
+            self.value_box.clear()
+            self.graph_cluster()
+            self.list_cluster()
+        except:
+            self.graph_cluster()
+            self.list_cluster()
 
-    def show_graph(self):
-        import plotly.io as plt_io
-        plt_io.templates["custom_dark"] = plt_io.templates["none"]
-        plt_io.templates['custom_dark']['layout']['yaxis']['gridcolor'] = 'darkgray'
-        plt_io.templates['custom_dark']['layout']['xaxis']['gridcolor'] = 'darkgray'
+    def list_cluster(self):
+        # 리스트 뿌려주기
+        self.cluster_list_box_layout = QVBoxLayout()  # 클러스터 리스트 레이아웃
+        for num, i in enumerate(range(len(self.cluster_list))):
+            self.value_box = QLabel()
+            self.value_box.setText('{} cluster : {}'.format(num, self.cluster_list[i]))
+            self.cluster_list_box_layout.addWidget(self.value_box)
+            self.clustering_list_track23.setLayout(self.cluster_list_box_layout)
+            # self.layout_second_graph_btn_track23.addWidget(self.clustering_list_track23, 2)
 
-        # 그래프 그리기
-        x_value = '{}'.format(self.x_content)
-        y_value = '{}'.format(self.y_content)
-        z_value = '{}'.format(self.z_content)
-        self.df = self.track2_file_modeling()
+    def graph_cluster(self):
+        self.fig.clear()
+        ax = self.fig.add_subplot(111)
+        for color in range(len(set(self.tsne['color']))):
+            x = self.tsne[self.tsne['color'] == color]['x']
+            y = self.tsne[self.tsne['color'] == color]['y']
+            ax.scatter(x, y, alpha=0.3, label='{}'.format(color))
+        ax.legend()
+        self.canvas.draw()
 
-        if z_value == 'none':
-            fig = px.scatter(self.df, x=x_value, y=y_value, opacity=0.4)
-            fig.layout.template = 'custom_dark'
-            fig.update_traces(marker=dict(size=5, line=dict(color='rgba(0, 0, 0, 1)', width=2)),
-                              selector=dict(mode='markers'))
-            self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
-            return self.df
-        else:
-            fig = px.scatter_3d(self.df, x=x_value, y=y_value, z=z_value, opacity=0.4)
-            fig.layout.template = 'custom_dark'
-            fig.update_traces(marker=dict(size=3, line=dict(color='rgba(0, 0, 0, 1)', width=2)),
-                              selector=dict(mode='markers'))
-            self.browser.setHtml(fig.to_html(include_plotlyjs='cdn'))
-            return self.df
+    def clustering_number_btn(self):
+        self.fig.clear()
+        self.number = self.lineedit_clustering_count_track23.text()
+        self.number = int(self.number)
+        self.__shared_state['clustering_number'] = self.number
+        number = self.__shared_state['clustering_number']
 
-    def set_axis(self):
-        self.x_content = self.combobox_x_track23.currentText()
-        self.y_content = self.combobox_y_track23.currentText()
-        self.z_content = self.combobox_z_track23.currentText()
-        self.change_axis_label_track23.setText('{},{},{}'.format(self.x_content, self.y_content, self.z_content))
-        self.__shared_state['first_axis'] = self.x_content
-        self.__shared_state['second_axis'] = self.y_content
-        self.__shared_state['third_axis'] = self.z_content
-        return [self.__shared_state['first_axis'], self.__shared_state['second_axis'],
-                self.__shared_state['third_axis']]
+        return number
 
     def save_range_value(self):
-        self.clustering1 = self.x_max_line.text()
-        self.clustering2 = self.x_min_line.text()
-        self.clustering3 = self.y_max_line.text()
-        self.clustering4 = self.y_min_line.text()
-        self.clustering5 = self.z_max_line.text()
-        self.clustering6 = self.z_min_line.text()
+        self.setting_clustering_list = self.x_max_line.text()
 
     def preprocessing_result_track1(self):
+        # track1_model = track1('data/sample_data/', self.file_name1)
+        each_value = self.track1_model.Model()[-1]
         now = time.localtime()
         CREAT_TIME = "%04d/%02d/%02d %02d:%02d:%02d" % (now.tm_year, now.tm_mon, now.tm_mday,
                                                         now.tm_hour, now.tm_min, now.tm_sec)
-        svm_df = pd.DataFrame({'FileName': self.file_name1,
-                               'CREAT_TIME': CREAT_TIME,
-                               'VOID_JDGM': (self.value[3] * 100).round(2),
-                               'SURFACE_JDGM': (self.value[2] * 100).round(2),
-                               'CORONA_JDGM': (self.value[0] * 100).round(2),
-                               'NOISE_JDGM': (self.value[1] * 100).round(2)}, index=[0])
+        data_dic = {'FileName': self.file_name1, 'CREAT_TIME': CREAT_TIME}
+        value_list = ['A1_K', 'A2_K', 'A1_S', 'A2_S', 'A1_std', 'A2_std', 'A_CC', 'B1_K', 'B2_K', 'B1_S', 'B2_S',
+                      'B1_std', 'B2_std', 'B_CC', 'Cn1_K', 'Cn2_K', 'Cn1_S', 'Cn2_S', 'Cn1_std', 'Cn2_std', 'Cn_CC',
+                      'Dm1_K', 'Dm2_K', 'Dm1_S', 'Dm2_S', 'Dm1_std', 'Dm2_std', 'Dm_CC']
+        for i, j in zip(value_list, each_value):
+            data_dic['{}'.format(i)] = j
+        svm_df = pd.DataFrame(data_dic, index=[0])
         svm_df.to_csv('data/{}_Result.csv'.format(self.file_path1.file_name[-1][:-4]), index=False)
 
     def setupUI(self):
@@ -366,39 +390,28 @@ class MyWindow(QWidget):
         self.csv_group_check_btn_track23 = QPushButton('◁◁◁파일 선택 버튼')
         self.csv_group_check_btn_track23.clicked.connect(self.track2_file_clicked)
         self.csv_group_check_btn_track23.clicked.connect(self.track2_file_modeling)
-        self.dendrogram_btn_track23 = QPushButton('덴드로그램 팝업 버튼') ###########################
+        self.dendrogram_btn_track23 = QPushButton('덴드로그램 팝업 버튼')
         self.dendrogram_btn_track23.clicked.connect(self.popup_dendrogram_btn)
         self.file_path1.selectedItems()
         self.axis_track23 = QGroupBox('클러스터링')
         self.clustering_count_label_track23 = QLabel('클러스터링 입력 수 ')
-        self.lineedit_clustering_count_track23 = QLineEdit('0')
-        self.center_graph_btn_track23 = QPushButton('그래프 출력 버튼')
+        self.lineedit_clustering_count_track23 = QLineEdit()
+        self.reset_count_btn_track23 = QPushButton('클러스터링 수 입력')
+        self.reset_count_btn_track23.clicked.connect(self.clustering_number_btn)
+        self.center_graph_btn_track23 = QPushButton('클러스터링 리스트 및 그래프 출력 버튼')
+        self.center_graph_btn_track23.clicked.connect(self.show_graph_cluster_list_show)
         self.graph_axis_track23 = QGroupBox()
         self.center_detail_graph_track23 = QGroupBox('각 축 좌표 범위 검색 및 이미지 출력')
-        self.browser = QtWebEngineWidgets.QWebEngineView()
-        self.three_graph_track23 = QGroupBox('클러스터링 입력 부분')
+        self.fig = plt.Figure()  # 그림부분
+        self.canvas = FigureCanvas(self.fig)
+        self.clustering_list_track23 = QGroupBox('클러스터 리스트')
+        self.three_graph_track23 = QGroupBox('클러스터링 입력 부분  # 리스트 형태로 적어주세요. (EX. 1,2,3,4)')
         self.search_xyz_track23 = QGroupBox('좌표 검색')
-        self.x_max_track23 = QLabel('#1')
-        self.x_max_value_track23 = QLineEdit('')
-        self.x_min_track23 = QLabel('#4')
-        self.x_min_value_track23 = QLineEdit('')
-        self.y_max_track23 = QLabel('#2')
-        self.y_max_value_track23 = QLineEdit('')
-        self.y_min_track23 = QLabel('#5')
-        self.y_min_value_track23 = QLineEdit('')
-        self.z_max_track23 = QLabel('#3')
-        self.z_max_value_track23 = QLineEdit('')
-        self.z_min_track23 = QLabel('#6')
-        self.z_min_value_track23 = QLineEdit('')
+        self.setting_value_track23 = QLineEdit('')
         self.axis_setting_btn_track23 = QPushButton('클러스터링 입력')
         self.axis_setting_btn_track23.clicked.connect(self.check_clicked_range)
         self.axis_setting_btn_track23.clicked.connect(self.save_range_value)
-        self.x_max_line = self.x_max_value_track23
-        self.x_min_line = self.x_min_value_track23
-        self.y_max_line = self.y_max_value_track23
-        self.y_min_line = self.y_min_value_track23
-        self.z_max_line = self.z_max_value_track23
-        self.z_min_line = self.z_min_value_track23
+        self.x_max_line = self.setting_value_track23
         self.graph_import_btn_track23 = QPushButton('클러스터링 그래프 출력')
         self.graph_import_btn_track23.clicked.connect(self.popup_btn)
         #### 레이아웃
@@ -443,20 +456,11 @@ class MyWindow(QWidget):
         self.layout_drop_file_track23 = QVBoxLayout()  # 오른쪽 파일 떨구는 레이아웃
         self.layout_drop_file_track23.addWidget(self.file_path2)
         self.csv_group_box_drop_track23.setLayout(self.layout_drop_file_track23)
-        self.layout_axis_track23 = QGridLayout()  # 축선택 레이아웃
-        self.layout_axis_track23.addWidget(self.clustering_count_label_track23,0,0)
-        self.layout_axis_track23.addWidget(self.lineedit_clustering_count_track23,0,1)
-        # self.layout_axis_track23.addWidget(self.center_graph_label_track23,1,0)
-        self.layout_axis_track23.addWidget(self.center_graph_btn_track23,1,1)
-        # self.layout_axis_track23.addWidget(self.axis_x_axis_track23, 0, 0, 1, 1)
-        # self.layout_axis_track23.addWidget(self.combobox_x_track23, 0, 1, 1, 2)
-        # self.layout_axis_track23.addWidget(self.axis_labeling_track23, 0, 4, 1, 3)
-        # self.layout_axis_track23.addWidget(self.axis_y_axis_track23, 1, 0, 1, 1)
-        # self.layout_axis_track23.addWidget(self.combobox_y_track23, 1, 1, 1, 2)
-        # self.layout_axis_track23.addWidget(self.change_axis_label_track23, 1, 4, 1, 3)
-        # self.layout_axis_track23.addWidget(self.axis_z_axis_track23, 2, 0, 1, 1)
-        # self.layout_axis_track23.addWidget(self.combobox_z_track23, 2, 1, 1, 2)
-        # self.layout_axis_track23.addWidget(self.axis_z_axis_value_track23, 2, 4, 1, 3)
+        self.layout_axis_track23 = QGridLayout()  # 클러스터링 레이아웃
+        self.layout_axis_track23.addWidget(self.clustering_count_label_track23, 0, 0)
+        self.layout_axis_track23.addWidget(self.lineedit_clustering_count_track23, 0, 1)
+        self.layout_axis_track23.addWidget(self.reset_count_btn_track23, 1, 0)
+        self.layout_axis_track23.addWidget(self.center_graph_btn_track23, 1, 1)
         self.axis_track23.setLayout(self.layout_axis_track23)
         self.layout_second_track23.addWidget(self.csv_group_box_drop_track23, 2)
         self.layout_second_track23.addWidget(self.csv_group_check_btn_track23, 1)
@@ -464,26 +468,17 @@ class MyWindow(QWidget):
         self.layout_second_track23.addWidget(self.axis_track23, 10)
         self.csv_group_box_track23.setLayout(self.layout_second_track23)
         self.layout_second_track23 = QHBoxLayout()  # 오른쪽 두번째 레이아웃
-        self.layout_second_graph_btn_track23 = QVBoxLayout()  # 오른쪽 두번째 그래프 부분 레이아웃
-        # self.layout_second_graph_btn_track23.addWidget(self.center_graph_btn_track23, alignment=QtCore.Qt.AlignLeft)
-        self.layout_second_graph_btn_track23.addWidget(self.browser)
+        self.layout_second_graph_btn_track23 = QHBoxLayout()  # 오른쪽 두번째 그래프 부분 레이아웃
+        self.cluster_list_box_layout = QVBoxLayout()  # 클러스터 리스트 레이아웃
+        self.clustering_list_track23.setLayout(self.cluster_list_box_layout)
+        self.layout_second_graph_btn_track23.addWidget(self.canvas, 8)
+        self.layout_second_graph_btn_track23.addWidget(self.clustering_list_track23, 2)
         self.graph_axis_track23.setLayout(self.layout_second_graph_btn_track23)
         self.graph_axis_track23.setLayout(self.layout_second_track23)
         self.layout_second_track23.addWidget(self.graph_axis_track23)
         self.layout_third_track23 = QHBoxLayout()  # 오른쪽 세번째 레이아웃
-        self.layout_third_3_detail_1_track23 = QGridLayout()
-        self.layout_third_3_detail_1_track23.addWidget(self.x_max_track23, 0, 0)
-        self.layout_third_3_detail_1_track23.addWidget(self.x_max_value_track23, 0, 1)
-        self.layout_third_3_detail_1_track23.addWidget(self.y_max_track23, 0, 2)
-        self.layout_third_3_detail_1_track23.addWidget(self.x_min_value_track23, 0, 3)
-        self.layout_third_3_detail_1_track23.addWidget(self.z_max_track23, 0, 4)
-        self.layout_third_3_detail_1_track23.addWidget(self.y_max_value_track23, 0, 5)
-        self.layout_third_3_detail_1_track23.addWidget(self.x_min_track23, 1, 0)
-        self.layout_third_3_detail_1_track23.addWidget(self.y_min_value_track23, 1, 1)
-        self.layout_third_3_detail_1_track23.addWidget(self.y_min_track23, 1, 2)
-        self.layout_third_3_detail_1_track23.addWidget(self.z_max_value_track23, 1, 3)
-        self.layout_third_3_detail_1_track23.addWidget(self.z_min_track23, 1, 4)
-        self.layout_third_3_detail_1_track23.addWidget(self.z_min_value_track23, 1, 5)
+        self.layout_third_3_detail_1_track23 = QHBoxLayout()
+        self.layout_third_3_detail_1_track23.addWidget(self.setting_value_track23)
         self.layout_third_track23.addLayout(self.layout_third_3_detail_1_track23)
         self.layout_third_track23.addWidget(self.axis_setting_btn_track23)
         self.layout_third_track23.addWidget(self.graph_import_btn_track23)

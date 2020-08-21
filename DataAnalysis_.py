@@ -128,141 +128,135 @@ class opendata_class :
         return element_list
 
 # 모델 시작
-def Model(PATH, file_name):
-    try:
-        PRPS = opendata_class.OpenData(PATH, file_name)
-        PRPD = array_class.prps_to_prpd(PRPS)
+class track1():
+    def __init__(self,PATH,file_name):
+        self.PATH = PATH
+        self.file_name = file_name
 
-    except:
-        PRPS = opendata_class.OpenData2(PATH, file_name)
-        PRPD = array_class.prps_to_prpd(PRPS)
+    def Model(self):
+        try:
+            PRPS = opendata_class.OpenData(self.PATH, self.file_name)
+            PRPD = array_class.prps_to_prpd(PRPS)
 
-    # column 특수케이스 처리
-    PRPD = PRPD_class.unusual(PRPD)
+        except:
+            PRPS = opendata_class.OpenData2(self.PATH, self.file_name)
+            PRPD = array_class.prps_to_prpd(PRPS)
 
-    # PRPD 전처리
-    PRPD_pre, cut_num = PRPD_class.PRPD_preprocess(PRPD)
+        # column 특수케이스 처리
+        PRPD = PRPD_class.unusual(PRPD)
 
-    ################ PRPS ###################
-    # PRPS 전처리
-    PRPS_pre = mulit_PRPS_class.PRPS_preprocess(PRPS, cut_num)
+        # PRPD 전처리
+        PRPD_pre, cut_num = PRPD_class.PRPD_preprocess(PRPD)
 
-    ############### Feature #################
-    # feature A 통계값
-    A = PRPD_pre.sum(axis=1)
+        ################ PRPS ###################
+        # PRPS 전처리
+        PRPS_pre = mulit_PRPS_class.PRPS_preprocess(PRPS, cut_num)
 
-    A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC = feature_class.statics(A)
+        ############### Feature #################
+        # feature A 통계값
+        A = PRPD_pre.sum(axis=1)
 
-    # feature B 통계값
-    B = np.array([])
-    for row in PRPD_pre:
-        B = np.append(B, array_class.Skewness(row))
+        A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC = feature_class.statics(A)
 
-    B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC = feature_class.statics(B)
+        # feature B 통계값
+        B = np.array([])
+        for row in PRPD_pre:
+            B = np.append(B, array_class.Skewness(row))
 
-    # feature C 통계값
-    C = np.array([])
-    for col in PRPS_pre.T:
-        C = np.append(C, np.max(col))
-    Cn = C / np.max(C)
+        B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC = feature_class.statics(B)
 
-    Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC = feature_class.statics(Cn)
+        # feature C 통계값
+        C = np.array([])
+        for col in PRPS_pre.T:
+            C = np.append(C, np.max(col))
+        Cn = C / np.max(C)
 
-    # feature D 통계값
-    D = np.array([])
-    for col in PRPS_pre.T:
-        D = np.append(D, np.mean(col))
-    Dm = D / np.max(C)
+        Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC = feature_class.statics(Cn)
 
-    Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC = feature_class.statics(Dm)
+        # feature D 통계값
+        D = np.array([])
+        for col in PRPS_pre.T:
+            D = np.append(D, np.mean(col))
+        Dm = D / np.max(C)
 
-    # Result
-    result = [A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC,
-              B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC,
-              Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC,
-              Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC]
+        Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC = feature_class.statics(Dm)
 
-    ############### Nan값이 들어있는 경우 다시 전처리 #################
-    for i in result:
-        if (i == i) == False:
+        # Result
+        result = [A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC,
+                  B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC,
+                  Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC,
+                  Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC]
+        result_detail = list(result)
+        ############### Nan값이 들어있는 경우 다시 전처리 #################
+        for i in result:
+            if (i == i) == False:
 
-            ###### cut num 5로 정의 #####
-            re_cut_num = 5
+                ###### cut num 5로 정의 #####
+                re_cut_num = 5
 
-            ###### PRPD 다시 전처리 #####
-            PRPD_pre = np.delete(PRPD, range(re_cut_num), axis=1)
+                ###### PRPD 다시 전처리 #####
+                PRPD_pre = np.delete(PRPD, range(re_cut_num), axis=1)
 
-            ###### PRPS 다시 전처리 #####
-            PRPS_pre = mulit_PRPS_class.PRPS_preprocess(PRPS, re_cut_num)
+                ###### PRPS 다시 전처리 #####
+                PRPS_pre = mulit_PRPS_class.PRPS_preprocess(PRPS, re_cut_num)
 
-            ##### Feature값 다시 구하기 #####
-            # feature A 통계값
-            A = PRPD_pre.sum(axis=1)
+                ##### Feature값 다시 구하기 #####
+                # feature A 통계값
+                A = PRPD_pre.sum(axis=1)
 
-            A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC = feature_class.statics(A)
+                A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC = feature_class.statics(A)
 
-            # feature B 통계값
-            B = np.array([])
-            for row in PRPD_pre:
-                B = np.append(B, array_class.Skewness(row))
+                # feature B 통계값
+                B = np.array([])
+                for row in PRPD_pre:
+                    B = np.append(B, array_class.Skewness(row))
 
-            B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC = feature_class.statics(B)
+                B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC = feature_class.statics(B)
 
-            # feature C 통계값
-            C = np.array([])
-            for col in PRPS_pre.T:
-                C = np.append(C, np.max(col))
-            Cn = C / np.max(C)
+                # feature C 통계값
+                C = np.array([])
+                for col in PRPS_pre.T:
+                    C = np.append(C, np.max(col))
+                Cn = C / np.max(C)
 
-            Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC = feature_class.statics(Cn)
+                Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC = feature_class.statics(Cn)
 
-            # feature D 통계값
-            D = np.array([])
-            for col in PRPS_pre.T:
-                D = np.append(D, np.mean(col))
-            Dm = D / np.max(C)
+                # feature D 통계값
+                D = np.array([])
+                for col in PRPS_pre.T:
+                    D = np.append(D, np.mean(col))
+                Dm = D / np.max(C)
 
-            Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC = feature_class.statics(Dm)
+                Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC = feature_class.statics(Dm)
 
-            # Result
-            result = [A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC,
-                      B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC,
-                      Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC,
-                      Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC]
+                # Result
+                result = [A1_K, A2_K, A1_S, A2_S, A1_std, A2_std, A_CC,
+                          B1_K, B2_K, B1_S, B2_S, B1_std, B2_std, B_CC,
+                          Cn1_K, Cn2_K, Cn1_S, Cn2_S, Cn1_std, Cn2_std, Cn_CC,
+                          Dm1_K, Dm2_K, Dm1_S, Dm2_S, Dm1_std, Dm2_std, Dm_CC]
 
-            result = pd.Series(result)
-            result.loc[result.isna()] = 0
-            result = list(result)
+                result = pd.Series(result)
+                result.loc[result.isna()] = 0
+                result = list(result)
+                result_detail = list(result)
 
-            break
+                break
 
-        else:
-            pass
+            else:
+                pass
 
-    ################ 스케일링 ################
-    scalerfile = 'data/scaler_data/using_scaler.sav'
-    scaler = pickle.load(open(scalerfile, 'rb'))
-    result = scaler.transform([np.array(result), np.array(result)])[0]
+        ################ 스케일링 ################
+        scalerfile = 'data/scaler_data/using_scaler.sav'
+        scaler = pickle.load(open(scalerfile, 'rb'))
+        result = scaler.transform([np.array(result), np.array(result)])[0]
 
-    ################ Model ################
-    modelfile = 'data/model_data/using_model.sav'
-    model = pickle.load(open(modelfile, 'rb'))
-    Result = model.predict_proba(np.array([result, result]))[0]
+        ################ Model ################
+        modelfile = 'data/model_data/using_model.sav'
+        model = pickle.load(open(modelfile, 'rb'))
+        Result = model.predict_proba(np.array([result, result]))[0]
 
-    ######################## 분석 결과 저장 ##########################
-    now = time.localtime()
+        final_value = [(Result[3] * 100).round(2), (Result[2] * 100).round(2),
+                       (Result[0] * 100).round(2), (Result[1] * 100).round(2)]
+        return [final_value,result_detail]
 
-    head, tail = os.path.splitext(file_name)
-    FileName = head
-    CREAT_TIME = "%04d/%02d/%02d %02d:%02d:%02d" % (
-    now.tm_year, now.tm_mon, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec)
-
-    svm_df = pd.DataFrame({'FileName': FileName,
-                           'CREAT_TIME': CREAT_TIME,
-                           'VOID_JDGM': (Result[3] * 100).round(2),
-                           'SURFACE_JDGM': (Result[2] * 100).round(2),
-                           'CORONA_JDGM': (Result[0] * 100).round(2),
-                           'NOISE_JDGM': (Result[1] * 100).round(2)}, index=[0])
-
-    return [(Result[3] * 100).round(2), (Result[2] * 100).round(2), (Result[0] * 100).round(2), (Result[1] * 100).round(2)]
 
